@@ -35,7 +35,7 @@ function startItUp() {
           break;
 
         case "View Employees by Department":
-          viewEmployeesByDepartment();
+          viewByDepartment();
           break;
 
         case "Add Employee":
@@ -81,4 +81,61 @@ function viewEmployees() {
     
     startItUp();
   });
+}
+
+//Employees by department
+function viewByDepartment() {
+  console.log("Currently viewing departments to choose from\n");
+
+  var query = 
+  `SELECT d.id, d.name
+  FROM employee e
+  LEFT JOIN roles r
+  ON e.role_id = r.id
+  LEFT JOIN department d
+  ON d.id = r.department_id
+  GROUP BY d.id, d.name`
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    const listDepartments = res.map(data => ({
+      value: data.id, name: data.name
+    }));
+
+    console.table(res);
+
+    departmentChoiceList(listDepartments);
+  });
+}
+function departmentChoiceList(listDepartments) {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "departmentList",
+        message: "Which department's employees would you like to see?",
+        choices: listDepartments
+      }
+    ])
+    .then(function (answer) {
+      console.log("answer ", answer.departmentList);
+
+      var query =
+      `SELECT e.id, e.first_name, e.last_name, r.job_title, d.name AS department
+      FROM employee e
+      JOIN roles r
+      ON e.role_id = r.id
+      JOIN department d
+      ON d.id = r.department_id
+      WHERE d.id = ?`
+
+      db.query(query, answer.departmentList, function (err, res) {
+        if (err) throw err;
+
+        console.table(res);
+
+        startItUp();
+      });
+    });
 }
