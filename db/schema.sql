@@ -1,12 +1,12 @@
 -- Creates the database for the employee tracker and will drop it if one exists already --
-DROP DATABASE IF EXISTS employeeTracker_db;
-CREATE DATABASE employeeTracker_db;
-USE employeeTracker_db;
+DROP DATABASE IF EXISTS employeeTracker;
+CREATE DATABASE employeeTracker;
+USE employeeTracker;
 
 -- Table creation --
 CREATE TABLE department (
     id INT NOT NULL AUTO_INCREMENT,
-    department_name VARCHAR(30) NOT NULL,
+    name VARCHAR(30) NOT NULL,
     PRIMARY KEY(id)
 );
 
