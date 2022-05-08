@@ -39,7 +39,7 @@ function startItUp() {
           break;
 
         case "Add Employee":
-          insertEmployee();
+          addEmployeeSetup();
           break;
 
         case "Remove Employees":
@@ -141,3 +141,65 @@ function departmentChoiceList(listDepartments) {
 }
 
 //Add an employee
+function addEmployeeSetup() {
+  console.log("Adding employee")
+
+  var query =
+    `SELECT r.id, r.job_title, r.salary
+    FROM roles r`
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    const jobChoice = res.map(({ id, title, salary }) => ({ 
+      value: id, title: `${title}`, salary: `${salary}`
+  }));
+  console.table(res);
+
+  addEmployee(jobChoice)
+  });
+}
+function addEmployee(jobChoice) {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "first_name",
+        message: "What is this employee's first name?"
+      },
+      {
+        type: "input",
+        name: "last_name",
+        message: "What is this employee's last name?"
+      },
+      {
+        type: "list",
+        name: "roleId",
+        message: "Which role will this employee be doing?",
+        choices: jobChoice
+      },
+      {
+        type: "input",
+        name: "managerId",
+        message: "What is the ID of this employees manager?"
+      },
+    ])
+    .then(function (answer) {
+      var query = `INSERT INTO employee SET ?`
+
+      db.query(query,
+        {
+          first_name: answer.first_name,
+          last_name: answer.last_name,
+          role_id: answer.roleId,
+          manager_id: answer.managerId,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.table(res);
+          console.log("Employee added successfully\n");
+
+          startItUp();
+        })
+    })
+}
