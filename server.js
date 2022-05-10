@@ -55,7 +55,7 @@ function startItUp() {
           break;
 
         case "End":
-          connection.end();
+          db.end();
           break;
       }
     });
@@ -246,5 +246,77 @@ function dropSelection(dropChoice) {
 
           startItUp();
         });
+    });
+}
+
+//Update an employee's role
+function updateRole() {
+  console.log("Updating a role");
+
+  var query = `SELECT e.id, e.first_name, e.last_name, r.job_title, d.name AS department, CONCAT(m.first_name, " ", m.last_name) AS manager
+  FROM employee e
+  JOIN roles r ON e.role_id = r.id
+  JOIN department d ON d.id = r.department_id
+  JOIN employee m ON m.id = e.manager_id`
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    const selectEmployee = res.map(({ id, first_name, last_name }) => ({
+      value: id, name: `${first_name} ${last_name}`
+    }));
+    console.table(res);
+
+    updateSelection(selectEmployee);
+  });
+}
+
+function updateSelection(selectEmployee) {
+  var query = `SELECT r.id, r.job_title, r.salary
+  FROM roles r`
+  let roleChoice;
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    roleChoice = res.map(({ id, title, salary }) => ({
+      value: id, title: `${title}`, salary: `${salary}`
+    }));
+
+    console.table(res);
+
+    updateRoleInq(selectEmployee, roleChoice);
+  });
+}
+
+function updateRoleInq(selectEmployee, roleChoice) {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employeeId",
+        message: "Select an employee to update their role",
+        choices: selectEmployee
+      },
+      {
+        type: "list",
+        name: "roleId",
+        message: "Select which role this employee will now be fulfilling",
+        choices: roleChoice
+      },
+    ])
+    .then(function (answer) {
+      var query = `UPDATE employee SET role_id = ? WHERE id = ?`
+      db.query(query, [
+        answer.roleId,
+        answer.employeeId
+      ], function (err, res) {
+        if (err) throw err;
+
+        console.table(res);
+        console.log("Employee successfully updated");
+
+        startItUp();
+      });
     });
 }
