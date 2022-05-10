@@ -320,3 +320,62 @@ function updateRoleInq(selectEmployee, roleChoice) {
       });
     });
 }
+
+// Add a role
+function addRole() {
+  var query = `SELECT d.id, d.name
+  FROM employee e
+  JOIN roles r ON e.role_id = r.id
+  JOIN department d ON d.id = r.department_id
+  GROUP BY d.id, d.name`
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    const departmentSelection = res.map(({ id, name }) => ({
+      value: id, name: `${id} ${name}`
+    }));
+    console.table(res);
+    console.log("Adding a role to a department");
+
+    addRoleInq(departmentSelection);
+  });
+}
+
+function addRoleInq(departmentSelection) {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "roleTitle",
+        message: "What will this role be called?"
+      },
+      {
+        type: "input",
+        name: "roleSalary",
+        message: "How much is this role's salary?"
+      },
+      {
+        type: "list",
+        name: "departmentId",
+        message: "Under which department will this role be added?",
+        choices: departmentSelection
+      },
+    ])
+    .then(function (answer) {
+      var query = `INSERT INTO roles SET ?`
+
+      db.query(query, {
+        job_title: answer.roleTitle,
+        salary: answer.roleSalary,
+        department_id: answer.departmentId
+      },
+      function (err, res) {
+        if (err) throw err;
+        console.table(res);
+        console.log("Added role successfully");
+
+        startItUp();
+      });
+    });
+}
