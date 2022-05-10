@@ -200,6 +200,51 @@ function addEmployee(jobChoice) {
           console.log("Employee added successfully\n");
 
           startItUp();
-        })
-    })
+        });
+    });
+}
+
+//Delete an employee
+function dropEmployees() {
+  console.log("Select an employee to remove");
+
+  var query =
+  `SELECT e.id, e.first_name, e.last_name
+  FROM employee e`
+
+  db.query(query, function (err, res) {
+    if (err) throw err;
+
+    const dropChoice = res.map(({ id, first_name, last_name }) => ({
+      value: id, name: `${id} ${first_name} ${last_name}`
+    }));
+    console.table(res);
+
+    dropSelection(dropChoice);
+  });
+}
+
+function dropSelection(dropChoice) {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "employeeId",
+        message: "What employee would you like to delete?",
+        choices: dropChoice
+      }
+    ])
+    .then(function (answer) {
+      var query = `DELETE FROM employee WHERE ?`;
+
+      db.query(query, { id: answer.employeeId },
+        function (err, res) {
+          if (err) throw err;
+
+          console.table(res);
+          console.log("All gone");
+
+          startItUp();
+        });
+    });
 }
